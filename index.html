@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al-Sahim2.0</title>
+    <link rel="stylesheet" href="iae.css">
+</head>
+<body>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+    </style>
+    <div class="chat-container">
+        <div class="chat-header">
+            <span>Al-sahim2.0</span>
+            <button id="darkModeToggle">👌👌👌👌👌</button>
+        </div>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="message bot">Bonjour ! Comment puis-je t'aider aujourd'hui ?</div>
+        </div>
+
+        <div class="chat-footer">
+            <input type="text" id="userInput" placeholder="Écris ton message...">
+            <button id="sendBtn">Envoyer</button>
+        </div>
+    </div>
+
+    <script >// 1. Sélection des éléments
+const chatBody = document.getElementById('chatBody');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+
+// 2. Fonction pour afficher les bulles (indispensable !)
+function addMessage(text, sender, id = null) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message', sender);
+    if (id) msgDiv.id = id;
+    msgDiv.innerText = text;
+    chatBody.appendChild(msgDiv);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+// 3. Fonction pour appeler Ollama
+async function getAIResponse(userText) {
+    const botMsgId = "bot-" + Date.now();
+    addMessage("...", 'bot', botMsgId); 
+    const botElement = document.getElementById(botMsgId);
+
+    try {
+        const response = await fetch("http://localhost:11434/api/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "llama3",
+                prompt: userText,
+                stream: false
+            })
+        });
+
+        const data = await response.json();
+        botElement.innerText = data.response;
+
+    } catch (error) {
+        botElement.innerText = "Erreur : Vérifie que le terminal Ollama est ouvert !";
+        console.error(error);
+    }
+}
+
+// 4. Écouteur du bouton envoyer
+sendBtn.addEventListener('click', () => {
+    const message = userInput.value.trim();
+    if (message !== "") {
+        addMessage(message, 'user');
+        userInput.value = "";
+        getAIResponse(message);
+    }
+});
+</script>
+<style>body {
+    background-color: #1a1a1a;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.chat-container {
+    width: 400px;
+    height: 550px;
+    background: #2d2d2d;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-header {
+    background: #3d3d;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.chat-body {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Style des bulles de message */
+.message {
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 80%;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.bot { 
+    background: #444; 
+    color: burlywood; 
+    align-self: flex-start; 
+}
+
+.user { 
+    background: blueviolet; 
+    color: rgb(107, 38, 38); 
+    align-self: flex-end; 
+}
+
+.chat-footer {
+    display: flex;
+    padding: 15px;
+    background: white;
+    gap: 10px;
+}
+
+#userInput {
+    flex-grow: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: yellowgreen;
+    color: black;
+    outline: none;
+}
+
+#sendBtn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}</style>
+</body>
+</html>
